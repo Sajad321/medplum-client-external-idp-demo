@@ -1,11 +1,11 @@
-import { MedplumClient } from '@medplum/core';
+import { MedplumClient, Hl7Message } from '@medplum/core';
 
 /**
  * The Medplum API server URL.
  * The default value for Medplum's hosted API server is "https://api.medplum.com/".
  * If you are using your own Medplum server, then you can set this value to your server URL.
  */
-const MEDPLUM_BASE_URL = 'https://api.medplum.com/';
+const MEDPLUM_BASE_URL = 'https://hapi.fhir.org';
 
 /**
  * Your Medplum project ID.
@@ -50,6 +50,7 @@ const EXTERNAL_REDIRECT_URI = MEDPLUM_BASE_URL + 'auth/external';
 const medplum = new MedplumClient({
   baseUrl: MEDPLUM_BASE_URL,
   clientId: MEDPLUM_CLIENT_ID,
+  fhirUrlPath: 'baseR4',
 });
 
 // The code check
@@ -66,18 +67,14 @@ if (code) {
 
 // The login button handler
 // The user can click this button to initiate the OAuth flow
-$('login').addEventListener('click', async () =>
-  medplum.signInWithExternalAuth(
-    EXTERNAL_AUTHORIZE_URL,
-    EXTERNAL_CLIENT_ID,
-    EXTERNAL_REDIRECT_URI,
-    {
-      projectId: MEDPLUM_PROJECT_ID,
-      clientId: MEDPLUM_CLIENT_ID,
-      redirectUri: WEB_APP_REDIRECT_URI,
-    }
-  )
-);
+$('login').addEventListener('click', async () => {
+  try {
+    const patient = await medplum.readHistory('Patient', '592580');
+    console.log('Patient:', patient);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+});
 
 // The userinfo button handler
 // Use the access token to call the "/userinfo" to get current user details
